@@ -41,12 +41,16 @@ class OptionMarketData(BaseModel):
     underlying_price: float =  Field(...,description="Price of the underlying asset")
     strike: float = Field(...,description="Strike price of the option")
     premium: float = Field(...,description="Market price of the option")
-    option_type: Literal["call", "put", 'c','p','ce','pe'] = Field(default="call", description="Type of option (call or put)")
+    
     implied_volatility: float =  Field(gt=0.0, description ="Implied vol of the option")
     @computed_field
     @property
     def tte(self) -> float:
         return (self.instrument_def.expiry_date - self.instrument_def.calc_date).days / 365
+    @computed_field
+    @property
+    def option_type(self) -> str:
+        return self.instrument_def.option_type
     
 if __name__ == "__main__":
     inst ={'underlying_product_code':'fdsfsdfsd','product_code':'werewrew', 'expiry_date':'2025-10-22', 'contract_date':'2025-10-01', 'calc_date':'2025-05-27', 'exercise_style':'EUROPEAN', 'option_type':'c'}
