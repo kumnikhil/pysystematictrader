@@ -41,8 +41,7 @@ class OptionMarketData(BaseModel):
     underlying_price: float =  Field(...,description="Price of the underlying asset")
     strike: float = Field(...,description="Strike price of the option")
     premium: float = Field(...,description="Market price of the option")
-    
-    implied_volatility: float =  Field(gt=0.0, description ="Implied vol of the option")
+    implied_volatility: Optional[float] = None
     @computed_field
     @property
     def tte(self) -> float:
@@ -55,7 +54,7 @@ class OptionMarketData(BaseModel):
 if __name__ == "__main__":
     inst ={'underlying_product_code':'fdsfsdfsd','product_code':'werewrew', 'expiry_date':'2025-10-22', 'contract_date':'2025-10-01', 'calc_datetime':'2025-05-27T19:00:00', 'exercise_style':'EUROPEAN', 'option_type':'c'}
     obj_inst =  OptionObj(**inst)
-    data = {'instrument_def':obj_inst, 'underlying_price':103.4,'strike':100., 'premium':3.6, 'option_type':'c', 'implied_volatility':0.37}
+    data = {'instrument_def':obj_inst, 'underlying_price':103.4,'strike':100., 'premium':3.6}
     option_data =  OptionMarketData(**data)
     print(f"Time to expiry: {option_data.tte}")
     print(option_data.instrument_def.expiry_date)
