@@ -5,6 +5,7 @@ import pandas as pd
 import polars as pl
 import datetime as dt
 from pydantic import BaseModel, Field
+from src.utils.validate_instrument import validate_all_intruments
 from typing import Union, Optional, List
 import logging
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ class Kite(object):
         with open(session_file,'r') as f:
             self.sesion_token = json.load(f)['session_token']
         self.kite.generate_session(self.sesion_token, api_secret=os.getenv("API_SECRET"))
-        self.instruments_df = pd.DataFrame.from_records(self.kite.instruments())
+        self.instruments_df = validate_all_intruments(self.kite.instruments())
 
     def get_historical_data(self, instrument_code, start_ts, end_ts, frequency, minutes_ctr=None):
         if frequency.lower() not in ['day', 'minute']:
