@@ -1,0 +1,11 @@
+.DS_Store
+pysystematic/.DS_Store
+pysystematic/.env
+pysystematic/.ipynb_checkpoints/
+pysystematic/__pycache__/
+pysystematic/src/.DS_Store
+pysystematic/.python-version
+pysystematic/src/__pycache__/
+*.ipynb
+pysystematic/src/utils/__pycache__/
+pysystematic/src/instruments/__pycache__/
