@@ -6,7 +6,7 @@ import polars as pl
 import datetime as dt
 from pydantic import BaseModel, Field
 from src.utils.validate_instrument import validate_all_intruments
-from typing import Union, Optional, List
+from typing import List, Optional
 import logging
 logger = logging.getLogger(__name__)
 
@@ -49,12 +49,19 @@ class Kite(object):
             hist_lz = pl.LazyFrame(hist_data_list).with_columns([
                 pl.col("date").dt.convert_time_zone("Asia/Kolkata"), # convert to datetime
                 pl.col("date").dt.date().alias("trade_date"), # extract date
-                pl.col("date").dt.time().alias("time") # extract time
+                pl.col("date").dt.time().alias("time"), # extract time
+                pl.lit(instrument_code).alias("instrument_token")
             ])
             return hist_lz.collect()
         else:
             return None
-
+        
+    def instruments_history(self, instrument_list:list,start_ts:str, end_ts:str, frequency:str, minutes_ctr:Optional[str]=None)->List:
+        ret_list = []
+        for inst_code in [code for code in instrument_list if code in self.instruments_df.instrument_token.unique().tolist()]:
+            ret_list.append(self.get_historical_data(inst_code, start_ts, end_ts, frequency, minutes_ctr))
+        return ret_list
+    
     def get_instruments_by_type(self, instrument_type:str):
         if str(instrument_type).upper() not in self.instruments_df.instrument_type.unique().tolist():
             raise AttributeError(f"Unknown instrument_type = {instrument_type}")
