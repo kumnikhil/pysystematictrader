@@ -15,7 +15,6 @@ import src.utils.smoothen as smooth
 from dotenv import load_dotenv, find_dotenv
 from tqdm import tqdm 
 import time
-
 def _get_api_creds():
     """
     Load API credentials from environment variables.
@@ -32,7 +31,7 @@ class RiskNetutralDensity(object):
     """
     Risk Neutral Density (RND) model for options pricing.
     """
-    def __init__(self, exchange_code:str, instrument_name:str, expiry:dt.datetime,rf_rate:float=0.05,calc_date:dt.datetime=None, time_frame:tuple=None, strikes_flt_method:str='liquidity'):
+    def __init__(self, exchange_code:str, instrument_name:str, expiry:dt.datetime,rf_rate:float=0.05,calc_date:dt.datetime=None, time_frame:tuple=None, strikes_flt_method:str='puts'):
         self.exchange_code = exchange_code
         self.instrument_name = instrument_name
         self.expiry = expiry
@@ -97,6 +96,20 @@ class RiskNetutralDensity(object):
         bsm =  BlackScholesMerton()
         if self.strikes_flt_method == 'liquidity':
             flt_opts = options_df.sort_values(by = ['strike', 'oi', 'volume'],ascending=[True, False, False]).drop_duplicates(subset=['strike'])
+        elif self.strikes_flt_method == "otm":
+            otm_puts = options_df[(options_df.strike<self.spot_price) & (options_df.instrument_type=='PE')]
+            otm_calls = options_df[(options_df.strike>=self.spot_price) & (options_df.instrument_type=='CE')]
+            flt_opts = pd.concat([otm_puts, otm_calls]).sort_values(by = ['strike'],ascending=[True]).drop_duplicates(subset=['strike'])
+        elif self.strikes_flt_method == "itm":
+            itm_calls = options_df[(options_df.strike<self.spot_price) & (options_df.instrument_type=='CE')]
+            itm_puts = options_df[(options_df.strike>=self.spot_price) & (options_df.instrument_type=='PE')]
+            flt_opts = pd.concat([itm_calls, itm_puts]).sort_values(by = ['strike'],ascending=[True]).drop_duplicates(subset=['strike'])
+        elif self.strikes_flt_method == "calls":
+            flt_opts = options_df[(options_df.instrument_type=='CE')].sort_values(by = ['strike'],ascending=[True]).drop_duplicates(subset=['strike'])
+        elif self.strikes_flt_method == "puts":
+            flt_opts = options_df[(options_df.instrument_type=='PE')].sort_values(by = ['strike'],ascending=[True]).drop_duplicates(subset=['strike'])
+        else:
+            NotImplementedError(f"strikes to fit implied vol allowed values- [liquidity, otm, itm, calls, puts]. Received- {self.strikes_flt_method}")
         flt_opts['implied_vol'] = flt_opts.apply(
         lambda r: bsm.implied_volatility(
             r['close'],
@@ -474,7 +487,7 @@ if __name__ == "__main__":
         expiry=dt.datetime(2025, 8, 28),
         rf_rate=0.05,
         calc_date=dt.datetime(2024, 8, 8),
-        strikes_flt_method='liquidity'
+        strikes_flt_method='puts'
     )
     flt_opts, spline_IV = RND.generate_vol_smile(kite_obj)
     strike_grd, density, cdf = RND.get_risk_neutral_density(flt_opts, spline_IV)
