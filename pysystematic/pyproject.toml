@@ -7,3 +7,7 @@ requires-python = ">=3.10"
 dependencies = [
     "breeze-connect>=1.0.62",
 ]
+# This is the key part for your structure
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
