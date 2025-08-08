@@ -11,13 +11,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Kite(object):
-    def __init__(self, session_file = "./appdata/api_creds/session_key.json"):
+    def __init__(self, session_key:str = None, session_file:str = "./appdata/api_creds/session_key.json"):
         self.kite = KiteConnect(api_key=os.getenv("API_KEY"))
-        if not os.path.isfile(session_file):
+        if session_key is not None:
+            self.session_token = session_key
+        elif not os.path.isfile(session_file):
             raise FileNotFoundError("Session token file for kiteconnect not found.")
-        with open(session_file,'r') as f:
-            self.sesion_token = json.load(f)['session_token']
-        self.kite.generate_session(self.sesion_token, api_secret=os.getenv("API_SECRET"))
+        else:
+            with open(session_file,'r') as f:
+                self.session_token = json.load(f)['session_token']
+        self.kite.generate_session(self.session_token, api_secret=os.getenv("API_SECRET"))
         self.instruments_df = validate_all_intruments(self.kite.instruments())
 
     def get_historical_data(self, instrument_code, start_ts, end_ts, frequency, minutes_ctr=None):
