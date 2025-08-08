@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, validator, root_validator
 from dataclasses import dataclass
 import time
 from typing_extensions import Annotated
-from src.instruments.options import OptionData
+from src.instruments.options import OptionMarketData
 import math 
 from torch import nn
 
@@ -40,13 +40,13 @@ class BlackScholesTensor:
         self.device = self.config.device
         print(f"Using device: {self.device}")
     
-    def _validate_options_batch(self, options_data: List[Dict]) -> List[OptionData]:
+    def _validate_options_batch(self, options_data: List[Dict]) -> List[OptionMarketData]:
         validated_options = []
         validation_errors = []
         
         for i, option in enumerate(options_data):
             try:
-                validated_option = OptionData(**option)
+                validated_option = OptionMarketData(**option)
                 validated_options.append(validated_option)
             except Exception as e:
                 validation_errors.append(f"Error in option {i}: {str(e)}")

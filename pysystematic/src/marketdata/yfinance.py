@@ -63,7 +63,7 @@ class WTI:
         hist = ticks.history(start =  start_date, end =  end_date, interval='1d')
         return hist, ric_list
     
-    def close_prices(self, hist_df:pd.Dataframe, ric_list:Optional[List[str]]=None):
+    def close_prices(self, hist_df:pd.core.frame.DataFrame, ric_list:Optional[List[str]]=None):
         if hist_df.empty :
             print("Error: Not enough data or contracts fetched. Exiting.")
             return None
