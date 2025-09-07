@@ -30,7 +30,7 @@ class BlacksModel:
         """Calculate implied volatility using Newton-Raphson method"""
         sigma = 0.2  # Initial guess
         def objective_function(sigma: float) -> float:
-            if option_type == 'call':
+            if str(option_type).lower() in ['call', 'ce', 'calls']:
                 return BlacksModel.black76_call(S, K, T, r, sigma) - option_price
             else:
                 return BlacksModel.black76_put(S, K, T, r, sigma) - option_price
