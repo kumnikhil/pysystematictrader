@@ -1,6 +1,8 @@
 import numpy as np
 from typing import Optional
 from scipy import stats
+from scipy import  optimize
+from scipy.stats import norm
 
 class BlacksModel:
     @staticmethod
@@ -26,22 +28,26 @@ class BlacksModel:
         return np.exp(-r*T) * (K*stats.norm.cdf(-d2) - S*stats.norm.cdf(-d1))
     
     @staticmethod
-    def implied_volatility(option_price:float, S:float, K:float, T:float, r:float, option_type:str='call', tol:float=1e-6, max_iterations:int=100) -> Optional[float]:
+    def implied_volatility(option_price:float, S:float, K:float, T:float, r:float, option_type:str='call', tol:float=1e-6) -> Optional[float]:
         """Calculate implied volatility using Newton-Raphson method"""
-        sigma = 0.2  # Initial guess
+        # sigma = 0.2  # Initial guess
         def objective_function(sigma: float) -> float:
             if str(option_type).lower() in ['call', 'ce', 'calls']:
                 return BlacksModel.black76_call(S, K, T, r, sigma) - option_price
             else:
                 return BlacksModel.black76_put(S, K, T, r, sigma) - option_price
-
-        for _ in range(max_iterations):
-            f_value = objective_function(sigma)
-            if abs(f_value) < tol:
-                return sigma
-            # Numerical derivative
-            dfdx = (objective_function(sigma + tol) - f_value) / tol
-            sigma -= f_value / dfdx
+        try:
+            iv = optimize.brentq(objective_function, 0.001, 5.0, xtol=tol)
+            return iv
+        except (ValueError, RuntimeError):
+            return None
+        # for _ in range(max_iterations):
+        #     f_value = objective_function(sigma)
+        #     if abs(f_value) < tol:
+        #         return sigma
+        #     # Numerical derivative
+        #     dfdx = (objective_function(sigma + tol) - f_value) / tol
+        #     sigma -= f_value / dfdx
 
         return None
     
